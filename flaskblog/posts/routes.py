@@ -41,7 +41,6 @@ def update_post (post_id):
         form.title.data = post.title
         form.content.data = post.content
         return render_template('create_post.html',title ='Update',form=form,legend='Update')
-        
 @posts.route('/Post/<int:post_id>/delete',methods=['GET','POST'])
 @login_required
 def delete_post (post_id):
