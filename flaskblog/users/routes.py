@@ -7,6 +7,7 @@ from flaskblog.users.utils import save_picture, send_reset_mail
 
 users = Blueprint('users', __name__)
 
+
 @users.route('/register',methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
@@ -21,6 +22,7 @@ def register():
         flash(f'Account is created for {form.username.data}!','success')
         return redirect(url_for('users.login'))
     return render_template('register.html',title='register',form=form)
+
 
 @users.route('/login',methods=['GET', 'POST'])
 def login():
@@ -48,12 +50,15 @@ def login():
         # else:
         #
     return render_template('login.html',title='login',form=form)
+
+
 @users.route('/logout',methods=['GET', 'POST'])
 def logout():
     logout_user()
     return redirect(url_for('main.home'))
     
 # Account setup
+
 
 @users.route('/account',methods=['GET', 'POST'])
 @login_required
