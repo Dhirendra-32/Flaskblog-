@@ -1,9 +1,11 @@
 env/
 .idea/
-
+migrations/
 flaskblog/__pycache__/
 flaskblog/errors/__pycache__/
 flaskblog/main/__pycache__/
 flaskblog/posts/__pycache__/
 flaskblog/static/profile_pics/
 flaskblog/users/__pycache__/
+flaskblog/migrations/__pycache__/
+__pycache__/
