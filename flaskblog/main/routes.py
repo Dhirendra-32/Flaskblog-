@@ -13,4 +13,9 @@ def home():
 @main.route('/about')
 def about():
     return render_template('about.html',title='About')
+    
+    
+@main.route('/stop')
+def stop():
+    return render_template('stop.html')
         

@@ -1,0 +1,9 @@
+{%extends 'layout.html'%}
+    {%block content%}
+        <div class="card bg-dark text-white">
+            <div class="card-body">
+                Verify your account
+            </div>
+            <a class=" text-white btn btn-outline-primary" href="{{ url_for('users.activateUser') }}" role="button">click here</a>
+        </div>
+    {%endblock content%}

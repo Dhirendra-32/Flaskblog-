@@ -1,10 +1,9 @@
-from flask import render_template, url_for, flash, redirect, request, Blueprint
+from flask import render_template, url_for, flash, redirect, request, Blueprint,logging
 from flask_login import login_user, current_user, logout_user, login_required
 from flaskblog import db, bcrypt
 from flaskblog.models import User, Post
 from flaskblog.users.forms import (RegistrationForm, LoginForm, UpdateAccountForm, RequestResetForm, ResetPasswordForm)
-from flaskblog.users.utils import save_picture, send_reset_mail
-
+from flaskblog.users.utils import save_picture, send_reset_mail,send_activation_mail
 users = Blueprint('users', __name__)
 
 
@@ -18,11 +17,10 @@ def register():
         user = User(username = form.username.data,email=form.email.data, password=hashed_password)
         db.session.add(user)
         db.session.commit()
-        
-        flash(f'Account is created for {form.username.data}!','success')
+        flash(f'Account is created for {form.username.data} and activation link has been sent to your email. Please verify !','success')
+        send_activation_mail(user)
         return redirect(url_for('users.login'))
     return render_template('register.html',title='register',form=form)
-
 
 @users.route('/login',methods=['GET', 'POST'])
 def login():
@@ -32,13 +30,18 @@ def login():
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
         username = User.query.filter_by(email=form.email.data).first().username
-        if user and bcrypt.check_password_hash(user.password,form.password.data):
-            login_user(user, remember=form.remember.data)
-            next_page = request.args.get('next')
-            return redirect(url_for('users.account'))  if next_page else redirect(url_for('main.home'))
-                #flash(f' Welcome {username}!','success')
-        else :
-            flash(f'Login failed. Please check email and password','danger')
+        #Begin S-1 added mail validation
+        if user.activate:
+            if user and bcrypt.check_password_hash(user.password,form.password.data):
+                login_user(user, remember=form.remember.data)
+                next_page = request.args.get('next')
+                return redirect(url_for('users.account'))  if next_page else redirect(url_for('main.home'))
+            else :
+                flash(f'Login failed. Please check email and password','danger')
+                return render_template('login.html',title='Login', form= form)
+        else:
+            return redirect(url_for('main.stop'))
+            #End S-1 added mail validation
     return render_template('login.html',title='Login', form= form)
         # if form.email.data =='admin@blog.com' and form.password.data=='password':
         #     flash(f'you have been logged in !','success')
@@ -58,8 +61,6 @@ def logout():
     return redirect(url_for('main.home'))
     
 # Account setup
-
-
 @users.route('/account',methods=['GET', 'POST'])
 @login_required
 def account():
@@ -114,6 +115,75 @@ def reset_token(token):
         hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
         user.password= hashed_password
         db.session.commit()
-        flash(f'your password has been reset!','success')
+        flash(f'Password has been reset!','success')
         return redirect(url_for('users.login'))
     return render_template('reset_token.html',title='reset password',form=form)
+
+#Begin S-1 added mail validation
+@users.route('/activate_account', methods=['GET','POST'])
+def activateUser():
+    if current_user.is_authenticated:
+        return redirect(url_for('main.home'))
+    form = RequestResetForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+        #send mail to this user
+        send_activation_mail(user)
+        flash('Account Activation link has been sent to your registered email', 'info')
+        return redirect(url_for('users.login'))
+    return render_template('activateUser.html',title = 'Reset password',form =form)
+    
+@users.route('/account_activated/<token>', methods=['GET','POST'])
+def reset1_token(token):
+    if current_user.is_authenticated:
+        return redirect(url_for('main.home'))
+    user = User.verify_reset_token(token)
+    if user is  None:
+        flash("that is invalid or expired token",'warning')
+        return redirect(url_for('users.activateUser'))
+    
+    else:
+        user1 = User.query.filter_by(id=user.id).first()
+        user1.activate=True
+        db.session.commit()
+        flash(f'Account has been activated !','success')
+        return redirect(url_for('users.login'))
+    return render_template('reset_token.html',title='reset password',form=form)
+#End S-1 added mail validation
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# activation account route
+ # @users.route('/activate_account/<token>', methods=['GET','POST'])
+# def reset_token(token):
+#     if current_user.is_authenticated:
+#         return redirect(url_for('main.home'))
+#     user = User.verify_reset_token(token)
+#     if user is  None:
+#         flash("that is invalid or expired token",'warning')
+#         #change required
+#         return redirect(url_for('users.reset_request'))
+#     form = ResetPasswordForm()
+#     if form.validate_on_submit():
+#         hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+#         user.password= hashed_password
+#         db.session.commit()
+#         flash(f'your password has been reset!','success')
+#         return redirect(url_for('users.login'))
+#     return render_template('reset_token.html',title='reset password',form=form)
