@@ -28,7 +28,7 @@ def send_reset_mail(user):
 #Begin S-1 added mail validation
 def send_activation_mail(user):
     token = user.get_reset_token()
-    msg = Message('Activate account'+str(user.username),sender=os.environ.get('EMAIL_USER'),recipients=[user.email])
+    msg = Message('Activate account '+str(user.username),sender=os.environ.get('EMAIL_USER'),recipients=[user.email])
     msg.body= f""" Please click on given link to activate account :{url_for('users.reset1_token',token = token,_external=True)}"""
     mail.send(msg)
 #End S-1 added mail validation
