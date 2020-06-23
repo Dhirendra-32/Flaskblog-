@@ -7,3 +7,6 @@ flaskblog/main/__pycache__/
 flaskblog/posts/__pycache__/
 flaskblog/static/profile_pics/
 flaskblog/users/__pycache__/
+
+__pycache__/
+migrations/
