@@ -4,11 +4,11 @@ from flask  import current_app
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from flask_login import UserMixin
 
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
-
-
+    
 # Defning User table sometime reffered as modal
 
 class User(db.Model,UserMixin):
@@ -17,6 +17,9 @@ class User(db.Model,UserMixin):
     email = db.Column(db.String(120),unique=True,nullable=False)
     imagef = db.Column(db.String(20), nullable=False,default='default.jpg')
     password = db.Column(db.String(120), nullable=False)
+    #Begin S-1 added mail validation
+    activate = db.Column(db.Boolean(), nullable=False, default=False)
+    #End S-1 added mail validation
     post = db.relationship('Post',backref='Author',lazy=True)
     
     def __repr__(self):
